@@ -1,7 +1,7 @@
 # Set Variables
-PROJECT="default"
-NETWORK="default"
-SUBNET="default"
+PROJECT="fm-service-project-1"
+NETWORK="shared-vpc"
+SUBNET="shared-subnet"
 REGION="us-east4"
 ZONE="us-east4-a"
 USER_EMAIL="default"
@@ -12,14 +12,41 @@ CVO_SERVICE_ACCOUNT_NAME="netapp-cloud-volumes-ontap"
 USER_POLICY_LINK="https://occm-sample-policies.s3.amazonaws.com/Setup_As_Service_3.7.3_GCP.yaml"
 SC_POLICY_LINK="https://occm-sample-policies.s3.amazonaws.com/Policy_for_Cloud_Manager_3.8.0_GCP.yaml"
 SERVICE_CONNECTOR_INSTANCE_NAME="netapp-service-connector"
+SHARED_VPC=0
+HOST_PROJECT="fm-deft-justice"
 
 function welcome {
     echo "Hello, $USER!"
-    echo "This script will prepare your Google project to deploy Cloud Volumes ONTAP and the Service Connector, would you like to keep the default settings?"
+    echo "This script will prepare your Google project to deploy Cloud Volumes ONTAP and the Service Connector, would you like to keep the default settings (Yes if already changed variables)?"
     select yn in "Yes" "No"; do
         case $yn in
             Yes ) break;;
             No ) echo "Please change the settings, goodbye!"; exit;;
+        esac
+    done
+}
+
+function shared_vpc_choice {
+    echo "Would you like to deploy into a shared VPC?"
+        select yn in "Yes" "No"; do
+        case $yn in
+            Yes ) SHARED_VPC=1; correct_project_choice; break;;
+            No ) break;;
+        esac
+    done
+}
+
+function correct_project_choice {
+    CURRENT_PROJECT=`gcloud config list --format 'value(core.project)' 2>/dev/null`
+    printf "Are these values correct? \n\
+        Service Project: $CURRENT_PROJECT \n\
+        Host Project: $HOST_PROJECT \n\
+        Network: $NETWORK \n\
+        Subnet: $SUBNET \n"
+        select yn in "Yes" "No"; do
+        case $yn in
+            Yes ) break;;
+            No ) echo "Please set the project to the service project and set all variables within this script"; exit;;
         esac
     done
 }
@@ -34,7 +61,7 @@ function set_variables {
 function enable_apis {
     echo "Enabling APIs"
     gcloud services enable deploymentmanager.googleapis.com logging.googleapis.com cloudresourcemanager.googleapis.com compute.googleapis.com iam.googleapis.com
-    gcloud services list
+    test $SHARED_VPC == 1 && gcloud services enable --project=$HOST_PROJECT deploymentmanager.googleapis.com logging.googleapis.com cloudresourcemanager.googleapis.com compute.googleapis.com iam.googleapis.com
 }
 
 function download_policies {
@@ -47,6 +74,11 @@ function set_user_permissions {
     echo "Setting user permissions"
     gcloud iam roles create $USER_ROLE_NAME --project=$PROJECT --file NetAppUserPolicy.yaml
     gcloud projects add-iam-policy-binding $PROJECT --member=user:$USER_EMAIL --role=projects/$PROJECT/roles/$USER_ROLE_NAME
+    if test $SHARED_VPC == 1
+        then
+            gcloud iam roles create $USER_ROLE_NAME --project=$HOST_PROJECT --file NetAppUserPolicy.yaml
+            gcloud projects add-iam-policy-binding $HOST_PROJECT --member=user:$USER_EMAIL --role=projects/$HOST_PROJECT/roles/$USER_ROLE_NAME
+    fi
 }
 
 function set_service_connector_permissions {
@@ -54,6 +86,13 @@ function set_service_connector_permissions {
     gcloud iam roles create $SERVICE_CONNECTOR_ROLE_NAME --project $PROJECT --file NetAppUserPolicy.yaml
     gcloud iam service-accounts create $SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME --description="Allows NetApp Service Connector to deploy and manage Cloud Volumes ONTAP instances" --display-name="NetApp Service Connector"
     gcloud projects add-iam-policy-binding $PROJECT --member=serviceAccount:$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com --role=projects/$PROJECT/roles/$SERVICE_CONNECTOR_ROLE_NAME
+    if test $SHARED_VPC == 1
+        then
+            gcloud projects add-iam-policy-binding $HOST_PROJECT --member=serviceAccount:$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com --role=roles/compute.networkUser
+            gcloud projects add-iam-policy-binding $HOST_PROJECT --member=serviceAccount:$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com --role=roles/deploymentmanager.viewer
+            COMPUTE_ENGINE_SERVICE_ACCOUNT=`gcloud iam service-accounts list --format 'value(email)' --filter 'displayName:"Compute Engine default service account"' 2>/dev/null`
+            gcloud projects add-iam-policy-binding $HOST_PROJECT --member=serviceAccount:$COMPUTE_ENGINE_SERVICE_ACCOUNT --role=roles/compute.networkUser
+    fi
 }
 
 function set_tiering_account_permissions {
@@ -76,31 +115,60 @@ function deploy_service_connector_choice {
     echo "Would you like to assign a public IP?"
     select yn in "Yes" "No"; do
         case $yn in
-            Yes ) echo "Public IP will be assigned"; \
-                $PUBLIC_IP=1; \
-                gcloud compute instances create $SERVICE_CONNECTOR_INSTANCE_NAME \
-                --machine-type=n1-standard-4 \
-                --zone=$ZONE \
-                --network=$NETWORK \
-                --subnet=$SUBNET \
-                --image-project=netapp-cloudmanager \
-                --image-family=cloudmanager \
-                --tags=http-server,https-server \
-                --service-account=$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com\
-                --scopes=cloud-platform;
+            Yes ) echo "Public IP will be assigned";
+                PUBLIC_IP=1;
+                if test $SHARED_VPC == 1
+                    then
+                        gcloud compute instances create $SERVICE_CONNECTOR_INSTANCE_NAME \
+                        --machine-type=n1-standard-4 \
+                        --zone=$ZONE \
+                        --network=projects/$HOST_PROJECT/global/networks/$NETWORK \
+                        --subnet=projects/$HOST_PROJECT/regions/$REGION/subnetworks/$SUBNET \
+                        --image-project=netapp-cloudmanager \
+                        --image-family=cloudmanager \
+                        --tags=http-server,https-server \
+                        --service-account=$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com\
+                        --scopes=cloud-platform;
+                else
+                    gcloud compute instances create $SERVICE_CONNECTOR_INSTANCE_NAME \
+                    --machine-type=n1-standard-4 \
+                    --zone=$ZONE \
+                    --network=$NETWORK \
+                    --subnet=$SUBNET \
+                    --image-project=netapp-cloudmanager \
+                    --image-family=cloudmanager \
+                    --tags=http-server,https-server \
+                    --service-account=$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com\
+                    --scopes=cloud-platform;
+                fi
                 break;;
             No ) echo "Private IP only being used"; \
-                gcloud compute instances create $SERVICE_CONNECTOR_INSTANCE_NAME \
-                --machine-type=n1-standard-4 \
-                --zone=$ZONE \
-                --network=$NETWORK \
-                --subnet=$SUBNET \
-                --no-address \
-                --image-project=netapp-cloudmanager \
-                --image-family=cloudmanager \
-                --tags=http-server,https-server \
-                --service-account=$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com\
-                --scopes=cloud-platform;
+                if test $SHARED_VPC == 1
+                    then
+                        gcloud compute instances create $SERVICE_CONNECTOR_INSTANCE_NAME \
+                        --machine-type=n1-standard-4 \
+                        --zone=$ZONE \
+                        --network=projects/$HOST_PROJECT/global/networks/$NETWORK \
+                        --subnet=projects/$HOST_PROJECT/regions/$REGION/subnetworks/$SUBNET \
+                        --no-address \
+                        --image-project=netapp-cloudmanager \
+                        --image-family=cloudmanager \
+                        --tags=http-server,https-server \
+                        --service-account=$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com\
+                        --scopes=cloud-platform;
+                else
+                    gcloud compute instances create $SERVICE_CONNECTOR_INSTANCE_NAME \
+                    --machine-type=n1-standard-4 \
+                    --zone=$ZONE \
+                    --network=$NETWORK \
+                    --subnet=$SUBNET \
+                    --no-address \
+                    --image-project=netapp-cloudmanager \
+                    --image-family=cloudmanager \
+                    --tags=http-server,https-server \
+                    --service-account=$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com\
+                    --scopes=cloud-platform;
+                fi
                 break;;
         esac
     done
@@ -115,6 +183,7 @@ function goodbye {
 
 function main {
     welcome
+    shared_vpc_choice
     set_variables
     enable_apis
     download_policies
