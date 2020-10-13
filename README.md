@@ -2,7 +2,7 @@
 Collection of scripts for NTAP cloud products
 
 ## CVO-GCP
-Collection of scripts for Clodu Volumes ONTAP in GCP
+Collection of scripts for Cloud Volumes ONTAP in GCP
 
 ### Contents:
 - cvo-gcp-setup.sh
