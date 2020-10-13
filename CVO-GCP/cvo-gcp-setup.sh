@@ -89,7 +89,7 @@ function set_service_connector_permissions {
     if test $SHARED_VPC == 1
         then
             gcloud projects add-iam-policy-binding $HOST_PROJECT --member=serviceAccount:$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com --role=roles/compute.networkUser
-            gcloud projects add-iam-policy-binding $HOST_PROJECT --member=serviceAccount:$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com --role=roles/deploymentmanager.viewer
+            gcloud projects add-iam-policy-binding $HOST_PROJECT --member=serviceAccount:$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com --role=roles/deploymentmanager.editor
             COMPUTE_ENGINE_SERVICE_ACCOUNT=`gcloud iam service-accounts list --format 'value(email)' --filter 'displayName:"Compute Engine default service account"' 2>/dev/null`
             gcloud projects add-iam-policy-binding $HOST_PROJECT --member=serviceAccount:$COMPUTE_ENGINE_SERVICE_ACCOUNT --role=roles/compute.networkUser
     fi
