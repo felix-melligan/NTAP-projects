@@ -1,7 +1,8 @@
 # Set Variables
-PROJECT="fm-service-project-1"
-NETWORK="shared-vpc"
-SUBNET="shared-subnet"
+PROJECT="default"
+HOST_PROJECT="default"
+NETWORK="default"
+SUBNET="default"
 REGION="us-east4"
 ZONE="us-east4-a"
 USER_EMAIL="default"
@@ -13,7 +14,6 @@ USER_POLICY_LINK="https://occm-sample-policies.s3.amazonaws.com/Setup_As_Service
 SC_POLICY_LINK="https://occm-sample-policies.s3.amazonaws.com/Policy_for_Cloud_Manager_3.8.0_GCP.yaml"
 SERVICE_CONNECTOR_INSTANCE_NAME="netapp-service-connector"
 SHARED_VPC=0
-HOST_PROJECT="fm-deft-justice"
 
 function welcome {
     echo "Hello, $USER!"
