@@ -11,7 +11,7 @@ SERVICE_CONNECTOR_ROLE_NAME="netappscrole"
 SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME="netapp-service-connector"
 CVO_SERVICE_ACCOUNT_NAME="netapp-cloud-volumes-ontap"
 USER_POLICY_LINK="https://occm-sample-policies.s3.amazonaws.com/Setup_As_Service_3.7.3_GCP.yaml"
-SC_POLICY_LINK="https://occm-sample-policies.s3.amazonaws.com/Policy_for_Cloud_Manager_3.8.0_GCP.yaml"
+SC_POLICY_LINK="https://occm-sample-policies.s3.amazonaws.com/Policy_for_Cloud_Manager_3.9.0_GCP.yaml"
 SERVICE_CONNECTOR_INSTANCE_NAME="netapp-service-connector"
 SHARED_VPC=0
 
