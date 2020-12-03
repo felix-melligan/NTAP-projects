@@ -83,7 +83,7 @@ function set_user_permissions {
 
 function set_service_connector_permissions {
     echo "Setting service connector permissions"
-    gcloud iam roles create $SERVICE_CONNECTOR_ROLE_NAME --project $PROJECT --file NetAppUserPolicy.yaml
+    gcloud iam roles create $SERVICE_CONNECTOR_ROLE_NAME --project $PROJECT --file NetAppSCPolicy.yaml
     gcloud iam service-accounts create $SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME --description="Allows NetApp Service Connector to deploy and manage Cloud Volumes ONTAP instances" --display-name="NetApp Service Connector"
     gcloud projects add-iam-policy-binding $PROJECT --member=serviceAccount:$SERVICE_CONNECTOR_SERVICE_ACCOUNT_NAME@$PROJECT.iam.gserviceaccount.com --role=projects/$PROJECT/roles/$SERVICE_CONNECTOR_ROLE_NAME
     if test $SHARED_VPC == 1
