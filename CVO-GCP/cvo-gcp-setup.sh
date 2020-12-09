@@ -183,8 +183,8 @@ function goodbye {
 
 function main {
     welcome
-    shared_vpc_choice
     set_variables
+    shared_vpc_choice
     enable_apis
     download_policies
     set_user_permissions
