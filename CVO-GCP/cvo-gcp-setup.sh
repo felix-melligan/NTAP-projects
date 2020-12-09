@@ -37,9 +37,8 @@ function shared_vpc_choice {
 }
 
 function correct_project_choice {
-    CURRENT_PROJECT=`gcloud config list --format 'value(core.project)' 2>/dev/null`
     printf "Are these values correct? \n\
-        Service Project: $CURRENT_PROJECT \n\
+        Service Project: $PROJECT \n\
         Host Project: $HOST_PROJECT \n\
         Network: $NETWORK \n\
         Subnet: $SUBNET \n"
