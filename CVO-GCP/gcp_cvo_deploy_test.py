@@ -185,7 +185,6 @@ tiering_permissions = {
 host_project_permissions = {
     "permissions": [
     # deploymentmanager.editor
-        "deploymentmanager.compositeTypes.*",
         "deploymentmanager.deployments.cancelPreview",
         "deploymentmanager.deployments.create",
         "deploymentmanager.deployments.delete",
@@ -193,13 +192,13 @@ host_project_permissions = {
         "deploymentmanager.deployments.list",
         "deploymentmanager.deployments.stop",
         "deploymentmanager.deployments.update",
-        "deploymentmanager.manifests.*",
-        "deploymentmanager.operations.*",
-        "deploymentmanager.resources.*",
-        "deploymentmanager.typeProviders.*",
-        "deploymentmanager.types.*",
+        "deploymentmanager.manifests.get",
+        "deploymentmanager.manifests.list",
+        "deploymentmanager.operations.get",
+        "deploymentmanager.operations.list",
+        "deploymentmanager.resources.get",
+        "deploymentmanager.resources.list",
         "resourcemanager.projects.get",
-        "resourcemanager.projects.list",
         "serviceusage.quotas.get",
         "serviceusage.services.get",
         "serviceusage.services.list",
@@ -216,7 +215,6 @@ host_project_permissions = {
         "compute.firewalls.list",
         "compute.interconnectAttachments.get",
         "compute.interconnectAttachments.list",
-        "compute.interconnectLocations.*",
         "compute.interconnects.get",
         "compute.interconnects.list",
         "compute.interconnects.use",
@@ -228,7 +226,8 @@ host_project_permissions = {
         "compute.networks.use",
         "compute.networks.useExternalIp",
         "compute.projects.get",
-        "compute.regions.*",
+        "compute.regions.get",
+        "compute.regions.list",
         "compute.routers.get",
         "compute.routers.list",
         "compute.routes.get",
@@ -246,20 +245,9 @@ host_project_permissions = {
         "compute.vpnGateways.use",
         "compute.vpnTunnels.get",
         "compute.vpnTunnels.list",
-        "compute.zones.*",
-        "networksecurity.authorizationPolicies.get",
-        "networksecurity.authorizationPolicies.list",
-        "networksecurity.authorizationPolicies.use",
-        "networksecurity.clientTlsPolicies.get",
-        "networksecurity.clientTlsPolicies.list",
-        "networksecurity.clientTlsPolicies.use",
-        "networksecurity.locations.*",
-        "networksecurity.operations.get",
-        "networksecurity.operations.list",
-        "networksecurity.serverTlsPolicies.get",
-        "networksecurity.serverTlsPolicies.list",
-        "networksecurity.serverTlsPolicies.use",
-        "networkservices.endpointConfigSelectors.get"
+        "compute.zones.get",
+        "compute.zones.list",
+        "networkservices.endpointConfigSelectors.get",
         "networkservices.endpointConfigSelectors.list",
         "networkservices.endpointConfigSelectors.use",
         "networkservices.httpFilters.get",
@@ -268,11 +256,9 @@ host_project_permissions = {
         "networkservices.httpfilters.get",
         "networkservices.httpfilters.list",
         "networkservices.httpfilters.use",
-        "networkservices.locations.*",
         "networkservices.operations.get",
         "networkservices.operations.list",
         "resourcemanager.projects.get",
-        "resourcemanager.projects.list",
         "servicenetworking.services.get",
         "serviceusage.quotas.get",
         "serviceusage.services.get",
@@ -540,11 +526,11 @@ def final_checklist(service_project_permissions, service_project_missing_permiss
         host_missing_permissions_count = len(host_missing_permissions_list)
         host_total_actual_permissions_count = host_total_permissions_count - host_missing_permissions_count
         if host_missing_permissions_count == host_total_permissions_count:
-            print("\t{RED}[x]\tConnector Service Account Permissions: {host_total_actual_permissions_count}/{host_total_permissions_count}{NC}".format(RED=RED, host_total_actual_permissions_count=host_total_actual_permissions_count, host_total_permissions_count=host_total_permissions_count, NC=NC))
+            print("\t{RED}[x]\tConnector Service Account Permissions on Host: {host_total_actual_permissions_count}/{host_total_permissions_count}{NC}".format(RED=RED, host_total_actual_permissions_count=host_total_actual_permissions_count, host_total_permissions_count=host_total_permissions_count, NC=NC))
         elif missing_permissions_count == 0:
-            print("\t{GREEN}[✓]\tConnector Service Account Permissions: {host_total_permissions_count}/{host_total_permissions_count}{NC}".format(GREEN=GREEN, host_total_permissions_count=host_total_permissions_count, NC=NC))
+            print("\t{GREEN}[✓]\tConnector Service Account Permissions on Host: {host_total_permissions_count}/{host_total_permissions_count}{NC}".format(GREEN=GREEN, host_total_permissions_count=host_total_permissions_count, NC=NC))
         else:
-            print("\t{YELLOW}[~]\tConnector Service Account Permissions: {host_total_permissions_count}/{host_total_permissions_count}{NC}".format(YELLOW=YELLOW, host_total_permissions_count=host_total_permissions_count, NC=NC))
+            print("\t{YELLOW}[~]\tConnector Service Account Permissions on Host: {host_total_permissions_count}/{host_total_permissions_count}{NC}".format(YELLOW=YELLOW, host_total_permissions_count=host_total_permissions_count, NC=NC))
 
 
 # All the functions we want to chain
