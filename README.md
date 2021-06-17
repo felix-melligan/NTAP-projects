@@ -8,7 +8,8 @@ Collection of scripts for Cloud Volumes ONTAP in GCP
 - gcp_cvodeploy_test.py
   - Tests GCP environment configuration to help troubleshoot/check
   - To use:
-   - Copy contents of file into a fresh .py file on the service connector VM in GCP:
+   - Deploy the Cloud Manager Service connector (Or a VM with the Cloud Manager service account into GCP)
+   - Copy contents of file into a fresh .py file onto the service connector VM in GCP:
    
    ```vi gcp_test.py```
    
