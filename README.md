@@ -9,6 +9,7 @@ Collection of scripts for Cloud Volumes ONTAP in GCP
   - Tests GCP environment configuration to help troubleshoot/check
   - To use:
    - Deploy the Cloud Manager Service connector (Or a VM with the Cloud Manager service account into GCP)
+   - ssh into the service connector VM
    - Copy contents of file into a fresh .py file onto the service connector VM in GCP:
    
    ```vi gcp_test.py```
