@@ -5,7 +5,7 @@ Collection of scripts for NTAP cloud products
 Collection of scripts for Cloud Volumes ONTAP in GCP
 
 ### Contents:
-- gcp_cvodeploy_test.py
+- gcp_cvo_deploy_test.py
   - Tests GCP environment configuration to help troubleshoot/check
   - To use:
    - Deploy the Cloud Manager Service connector (Or a VM with the Cloud Manager service account into GCP)
