@@ -266,7 +266,6 @@ host_project_permissions = {
     ]
 }
 
-actual_permissions = {"permissions": []}
 missing_permissions_list = []
 
 # Declare some color variables (Taken from Wil Shields' script)
@@ -359,6 +358,8 @@ def check_endpoints(endpoint_list):
     if proxy_enabled:
         print("Proxy settings are: {BOLD}{proxy} {YELLOW}Password encoded{NC}".format(proxy=proxy, BOLD=BOLD, NC=NC, YELLOW=YELLOW))
 
+    gcp_apis_accessible = True
+
     for url in endpoint_list:
         try:
             response = requests.get(url=url, verify=False, timeout=1, proxies=requests_proxy)
@@ -366,8 +367,16 @@ def check_endpoints(endpoint_list):
             endpoints_enabled += 1
         except requests.exceptions.ConnectionError:
             print("[ {RED}Endpoint unreachable: {url}  {NC}]".format(RED=RED,url=url,NC=NC))
+            if url == "https://www.googleapis.com":
+                gcp_apis_accessible = False
         except:
             print("{RED}Something went wrong!{NC}".format(RED=RED, NC=NC))
+    if not gcp_apis_accessible:
+        seperator()
+
+        print("{RED}{BOLD}I cannot go further without access to the GCP APIs!{NC}".format(RED=RED, NC=NC, BOLD=BOLD))
+        exit(0)
+
 
 # Permissions check for service account on given project with given permissions
 def check_service_account_permissions(project, access_token, permission_set, service_account):
@@ -388,10 +397,12 @@ def check_service_account_permissions(project, access_token, permission_set, ser
 
     try:
         actual_permissions = requests.post(url=url, headers=headers, json=permission_set, timeout=2, proxies=requests_proxy).json()
+        if actual_permissions.response.status == 200:
+            return actual_permissions
+        else:
+            raise
     except:
         print("{RED}Something went wrong with the call to: {url}{NC}".format(RED=RED, url=url, NC=NC))
-
-    return actual_permissions
 
 # Check permissions arrays
 def permissions_array_check(permissions_needed, actual_permissions, service_account):
